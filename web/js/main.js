@@ -92,6 +92,8 @@ var PokemonLoggerMapView = {
                 },
                 pokemon_id: data.pokemon_id
             });
+            // hide it by default
+            marker.setVisible(false);
             // push it in the array
             self.markers.push(marker);
         }
