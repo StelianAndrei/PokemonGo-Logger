@@ -1,3 +1,2 @@
 *.py[cod]
-web/data/config.json
-web/data/pokemon-*.json
+web/data/*.json
