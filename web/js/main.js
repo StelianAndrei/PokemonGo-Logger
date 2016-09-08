@@ -33,7 +33,7 @@ var PokemonLoggerMapView = {
             // load the script for the Google Maps API
             $.getScript('https://maps.googleapis.com/maps/api/js?key=' + self.config.gmapkey + '&libraries=drawing', function() {
                 // load the Pokemon data file
-                self.loadCSV('./data/' + self.config.datafile, function(data) {
+                self.loadPokemonCSV('./data/' + self.config.datafile, function(data) {
                     // store the pokemon
                     self.pokemonArray = data;
 
@@ -145,38 +145,55 @@ var PokemonLoggerMapView = {
 
     /**
      * Load a JSON file
-     * @param  {string} path          The path to the JSON file
+     * @param  {string}   path        The path to the JSON file
      * @param  {function} success     The success callback
      * @param  {function} error       The error callback
      */
     loadJSON: function(path, success, error) {
-        // create the request
-        var xhr = new XMLHttpRequest();
+        var self = this;
 
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === XMLHttpRequest.DONE) {
-                // if the request was successful
-                if (xhr.status === 200) {
-                    if (success) {
-                        try {
-                            success(JSON.parse(xhr.responseText.replace(/\bNaN\b/g, 'null')));
-                        } catch (err) {
-                            error(err);
-                        }
-                    }
-                } else {
-                    if (error) {
-                        error(xhr);
-                    }
-                }
-            }
-        };
-        // break caching
-        xhr.open('GET', path + "?v=" + Date.now(), true);
-        xhr.send();
+        self.loadLocalFile(path, function(data) {
+            success(JSON.parse(data.replace(/\bNaN\b/g, 'null')));
+        }, error);
     },
 
-    loadCSV: function(path, success, error) {
+    /**
+     * Load the Pokemon data from a CSV file
+     * @param  {string}   path        The path to the CSV file
+     * @param  {function} success     The success callback
+     * @param  {function} error       The error callback
+     */
+    loadPokemonCSV: function(path, success, error) {
+        var self = this;
+
+        self.loadLocalFile(path, function(data) {
+            var rows = data.split("\n"),
+                objects = [],
+                item;
+
+            // go from string to array of objects
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i] === '') continue;
+                item = rows[i].split(',');
+                objects.push({
+                    'date': item[0],
+                    'pokemon_id': item[1],
+                    'latitude': item[2],
+                    'longitude': item[3],
+                    'iv': item[4],
+                    'iv_display': item[5],
+                    'cp': item[6],
+                    'name': item[7],
+                })
+            }
+            success(objects);
+        }, error);
+    },
+
+    /**
+     * Load a local file via an XMLHttpRequest and pass it's responseText to the success() callback
+     */
+    loadLocalFile: function(path, success, error) {
         // create the request
         var xhr = new XMLHttpRequest();
 
@@ -186,22 +203,7 @@ var PokemonLoggerMapView = {
                 if (xhr.status === 200) {
                     if (success) {
                         try {
-                            var rows = xhr.responseText.split("\n"), objects = [], item;
-                            for(var i = 0; i < rows.length; i++){
-                                if(rows[i] === '') continue;
-                                item = rows[i].split(',');
-                                objects.push({
-                                    'date': item[0],
-                                    'pokemon_id': item[1],
-                                    'latitude': item[2],
-                                    'longitude': item[3],
-                                    'iv': item[4],
-                                    'iv_display': item[5],
-                                    'cp': item[6],
-                                    'name': item[7],
-                                })
-                            }
-                            success(objects);
+                            success(xhr.responseText);
                         } catch (err) {
                             error(err);
                         }
