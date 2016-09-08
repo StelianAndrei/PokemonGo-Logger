@@ -1,34 +1,55 @@
-var mapStyles = [
-    { "featureType": "road", "elementType": "geometry.fill", "stylers": [{ "color": "#4f9f92" }, { "visibility": "on" }] },
-    { "featureType": "water", "elementType": "geometry.stroke", "stylers": [{ "color": "#feff95" }, { "visibility": "on" }, { "weight": 1.2 }] },
-    { "featureType": "landscape", "elementType": "geometry", "stylers": [{ "color": "#adff9d" }, { "visibility": "on" }] },
-    { "featureType": "water", "stylers": [{ "visibility": "on" }, { "color": "#147dd9" }] },
-    { "featureType": "poi", "elementType": "geometry.fill", "stylers": [{ "color": "#d3ffcc" }] }, { "elementType": "labels", "stylers": [{ "visibility": "off" }] }
-];
+/**
+ * This is out main object. All the functionality is contained whithin
+ * @type {Object}
+ */
+var PokemonLoggerMapView = {
+    // the default configuration
+    config: {
+        "latitude": 40.000000, // the initial map center latitude
+        "longitude": 20.000000, // the initial map center longitude
+        "zoom": 14, // the initial zoom
+        "datafile": "pokemon-file-output.json" // where to load the data from
+    },
+    pokemonArray: [], // the pokemon data, loaded from file
+    map: null, // the map
+    markers: [], // the markers array
 
-var mapView = {
-    config: null,
-    pokemonArray: [],
-    map: [],
-    markers: [],
-
+    /**
+     * Initialize everything. This is the main entry point
+     */
     init: function() {
         var self = this;
-        self.loadJSON('/data/config.json', function(data) {
-            self.config = data;
 
+        // start loading the configuration file and the data file
+        self.loadJSON('/data/confi1g.json', function(data) {
+            // import the config once the file has been fetched
+            self.config = $.extend(self.config, data);
+            // if the key API was not set
+            if (typeof self.config.gmapkey === 'undefined' || self.config.gmapkey === '') {
+                self.errorFunc('The "gmapkey" is missing from the config file!');
+                return false;
+            }
+
+            // load the script for the Google Maps API
             $.getScript('https://maps.googleapis.com/maps/api/js?key=' + self.config.gmapkey + '&libraries=drawing', function() {
-                self.loadJSON('/data/pokemon-file-output.json', function(data, successData) {
+                // load the Pokemon data file
+                self.loadJSON('/data/'.self.config.datafile, function(data) {
+                    // store the pokemon
                     self.pokemonArray = data;
-                    self.initMap();
-                }, self.errorFunc, 'pokemonArray');
-            });
 
-        }, self.errorFunc, 'pokemonConfig');
+                    // generate the map
+                    self.initMap();
+                }, self.errorFunc);
+            });
+        }, self.errorFunc);
     },
 
+    /**
+     * Initialize the map with all the styles and the config
+     */
     initMap: function() {
         var self = this;
+
         self.map = new google.maps.Map(document.getElementById('map'), {
             center: {
                 lat: self.config.latitude,
@@ -36,16 +57,29 @@ var mapView = {
             },
             zoom: self.config.zoom,
             mapTypeId: 'roadmap',
-            styles: mapStyles
+            styles: [
+                { "featureType": "road", "elementType": "geometry.fill", "stylers": [{ "color": "#4f9f92" }, { "visibility": "on" }] },
+                { "featureType": "water", "elementType": "geometry.stroke", "stylers": [{ "color": "#feff95" }, { "visibility": "on" }, { "weight": 1.2 }] },
+                { "featureType": "landscape", "elementType": "geometry", "stylers": [{ "color": "#adff9d" }, { "visibility": "on" }] },
+                { "featureType": "water", "stylers": [{ "visibility": "on" }, { "color": "#147dd9" }] },
+                { "featureType": "poi", "elementType": "geometry.fill", "stylers": [{ "color": "#d3ffcc" }] }, { "elementType": "labels", "stylers": [{ "visibility": "off" }] }
+            ]
         });
+
         self.placeMarkers();
         self.createUI()
     },
 
+    /**
+     * Place the markers on the map
+     */
     placeMarkers: function() {
-        var self = this, marker;
+        var self = this,
+            marker;
+
         for (var i = 0; i < self.pokemonArray.length; i++) {
             var data = self.pokemonArray[i];
+            // create a new map marker
             marker = new google.maps.Marker({
                 map: self.map,
                 position: {
@@ -58,19 +92,28 @@ var mapView = {
                 },
                 pokemon_id: data.pokemon_id
             });
+            // push it in the array
             self.markers.push(marker);
         }
     },
 
+    /**
+     * Create the interface
+     */
     createUI: function() {
         var self = this,
             controlsContainer = $('ul#pokemon-list'),
             singles = [],
             data;
+
+        // create the list items
         for (var i = 0; i < self.pokemonArray.length; i++) {
             data = self.pokemonArray[i];
+            // if we have't created an item for this type of pokemon
             if (singles.indexOf(data.pokemon_id) === -1) {
-                controlsContainer.append('<li><label><input type="checkbox" checked value="' + data.pokemon_id + '"> ' + data.pokemon + '</li>');
+                // add the html
+                controlsContainer.append('<li><label><input type="checkbox" value="' + data.pokemon_id + '"> ' + data.pokemon + '</li>');
+                // store it in the singles array
                 singles.push(data.pokemon_id);
             }
         }
@@ -78,47 +121,79 @@ var mapView = {
         self.registerCheckboxEvents();
     },
 
-    registerCheckboxEvents: function(){
+    /**
+     * Register the filters for the UI
+     */
+    registerCheckboxEvents: function() {
         var self = this;
-        $('ul#pokemon-list input[type="checkbox"]').change(function(evt){
-            var id = $(this).val(), 
+
+        // for the change of a checkbox
+        $('ul#pokemon-list input[type="checkbox"]').change(function(evt) {
+            var id = $(this).val(),
                 isChecked = $(this).is(':checked');
-            for(var i = 0; i < self.markers.length; i++){
-                if(self.markers[i].pokemon_id == id){
-                    if(isChecked)
-                        self.markers[i].setVisible(true);
-                    else
-                        self.markers[i].setVisible(false);
+            // go through all the markers
+            for (var i = 0; i < self.markers.length; i++) {
+                // if this marker matches
+                if (self.markers[i].pokemon_id == id) {
+                    self.markers[i].setVisible(isChecked);
                 }
             }
         })
     },
 
-    loadJSON: function(path, success, error, successData) {
+    /**
+     * Load a JSON file
+     * @param  {string} path          The path to the JSON file
+     * @param  {function} success     The success callback
+     * @param  {function} error       The error callback
+     */
+    loadJSON: function(path, success, error) {
+        // create the request
         var xhr = new XMLHttpRequest();
+
         xhr.onreadystatechange = function() {
             if (xhr.readyState === XMLHttpRequest.DONE) {
+                // if the request was successful
                 if (xhr.status === 200) {
                     if (success) {
                         try {
-                            success(JSON.parse(xhr.responseText.replace(/\bNaN\b/g, 'null')), successData);
-                        } catch (err) {}
+                            success(JSON.parse(xhr.responseText.replace(/\bNaN\b/g, 'null')));
+                        } catch (err) {
+                            error(err);
+                        }
                     }
                 } else {
-                    if (error)
+                    if (error) {
                         error(xhr);
+                    }
                 }
             }
         };
+        // break caching
         xhr.open('GET', path + "?v=" + Date.now(), true);
         xhr.send();
     },
 
-    errorFunc: function(xhr) {
-        console.error(xhr);
+    /**
+     * Treat errors
+     * @param  {Object|String} data The error object or string
+     */
+    errorFunc: function(data) {
+        var errorFormat = "background: red; color: yellow; font-size: x-large";
+
+        // log the error
+        if (typeof data === 'string') {
+            console.error('%c' + data, errorFormat);
+        } else {
+            console.error('%cERROR: ' + data.statusText + ' (' + data.responseURL + ')', errorFormat);
+        }
+        // show an error to let the user know something went wrong
+        alert('There was an error. Check the console for more details.')
     }
 };
 
+// once everything is loaded
 $(document).ready(function() {
-    mapView.init();
+    // initialize the map
+    PokemonLoggerMapView.init();
 });
