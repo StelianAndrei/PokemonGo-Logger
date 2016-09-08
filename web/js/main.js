@@ -8,7 +8,7 @@ var PokemonLoggerMapView = {
         "latitude": 40.000000, // the initial map center latitude
         "longitude": 20.000000, // the initial map center longitude
         "zoom": 14, // the initial zoom
-        "datafile": "pokemon-file-output.json" // where to load the data from
+        "datafile": "pokemon-file-output.csv" // where to load the data from
     },
     pokemonArray: [], // the pokemon data, loaded from file
     map: null, // the map
@@ -33,7 +33,7 @@ var PokemonLoggerMapView = {
             // load the script for the Google Maps API
             $.getScript('https://maps.googleapis.com/maps/api/js?key=' + self.config.gmapkey + '&libraries=drawing', function() {
                 // load the Pokemon data file
-                self.loadJSON('./data/' + self.config.datafile, function(data) {
+                self.loadCSV('./data/' + self.config.datafile, function(data) {
                     // store the pokemon
                     self.pokemonArray = data;
 
@@ -114,7 +114,7 @@ var PokemonLoggerMapView = {
             // if we have't created an item for this type of pokemon
             if (singles.indexOf(data.pokemon_id) === -1) {
                 // add the html
-                controlsContainer.append('<li><label><input type="checkbox" value="' + data.pokemon_id + '"> ' + data.pokemon + '</li>');
+                controlsContainer.append('<li><label><input type="checkbox" value="' + data.pokemon_id + '"> ' + data.name + '</li>');
                 // store it in the singles array
                 singles.push(data.pokemon_id);
             }
@@ -160,6 +160,48 @@ var PokemonLoggerMapView = {
                     if (success) {
                         try {
                             success(JSON.parse(xhr.responseText.replace(/\bNaN\b/g, 'null')));
+                        } catch (err) {
+                            error(err);
+                        }
+                    }
+                } else {
+                    if (error) {
+                        error(xhr);
+                    }
+                }
+            }
+        };
+        // break caching
+        xhr.open('GET', path + "?v=" + Date.now(), true);
+        xhr.send();
+    },
+
+    loadCSV: function(path, success, error) {
+        // create the request
+        var xhr = new XMLHttpRequest();
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                // if the request was successful
+                if (xhr.status === 200) {
+                    if (success) {
+                        try {
+                            var rows = xhr.responseText.split("\n"), objects = [], item;
+                            for(var i = 0; i < rows.length; i++){
+                                if(rows[i] === '') continue;
+                                item = rows[i].split(',');
+                                objects.push({
+                                    'date': item[0],
+                                    'pokemon_id': item[1],
+                                    'latitude': item[2],
+                                    'longitude': item[3],
+                                    'iv': item[4],
+                                    'iv_display': item[5],
+                                    'cp': item[6],
+                                    'name': item[7],
+                                })
+                            }
+                            success(objects);
                         } catch (err) {
                             error(err);
                         }
