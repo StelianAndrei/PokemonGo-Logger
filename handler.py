@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 from pokemongo_bot.event_manager import EventHandler
-
-import os
-import json
+from time import strftime, localtime
+import csv
 
 class PokemonLoggerHandler(EventHandler):
     def __init__(self, bot, config):
@@ -11,19 +10,9 @@ class PokemonLoggerHandler(EventHandler):
         self.config = config
 
     def handle_event(self, event, sender, level, formatted_msg, data):
-        output_file = self.config.get('datafile', 'pokemon-file-output.json')
+        output_file = self.config.get('datafile', 'pokemon-file-output.csv')
 
         if event == 'pokemon_appeared':
-            if not os.path.isfile(output_file):
-                items = []
-            else:
-                with open(output_file) as itemsjson:
-                    items = json.load(itemsjson)
-
-            del data['msg']
-            del data['encounter_id']
-            del data['ncp']
-
-            items.append(data)
-            with open(output_file, mode='w') as f:
-                f.write(json.dumps(items, indent=2))
+            with open(output_file, 'ab') as csvfile:
+                csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                csvwriter.writerow([strftime('%Y-%m-%d %H:%M:%S', localtime()), data['pokemon_id'], data['latitude'], data['longitude'], data['iv'], data['iv_display'], data['cp'], data['pokemon']])

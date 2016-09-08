@@ -5,17 +5,12 @@ Using this you can map where certain pokemontypes are encountered and maybe find
 
 ## What it does
 
-When a Pokemon is encountered in the wild, it's stats and position will be stored inside the PokemonGo-Bot folder, in a file named ``pokemon-file-output.json``. An entry will look something like this:
+When a Pokemon is encountered in the wild, it's stats and position will be stored inside the PokemonGo-Bot folder, in a file named ``pokemon-file-output.csv`` by default. An entry will look something like this (but without a header and comma separated):
 
-    {
-      "pokemon_id": 16, 
-      "longitude": 22.00000000, 
-      "iv": 0.36, 
-      "latitude": 40.00000000, 
-      "iv_display": "5/6/5", 
-      "cp": 207, 
-      "pokemon": "Pidgey"
-    }
+    Date                | Pokemon ID  | Latitude  | Longitude | IV   | IV Display | CPs | Name
+    --------------------+-------------+-----------+-----------+------+------------+-----+------
+    2016-09-08 16:22:25 |          97 | 47.000000 | 27.000000 | 0.47 |     7/0/14 |  28 | Hypno
+    2016-09-08 16:24:18 |          19 | 47.000000 | 27.000000 | 0.53 |     6/7/11 |  10 | Rattata
 
 ## Installation
 
@@ -32,7 +27,7 @@ To use the plugin, create a new task in your config file similar to the one belo
     {
         "type": "pgbot-logging.PokemonLogger"
         "config": {
-            "datafile": "pokemon-file-output.json"
+            "datafile": "pokemon-file-output.csv"
         }
     }
 
@@ -47,7 +42,7 @@ After all this the structure will look something like:
             /css
             /data
                 config.json
-                pokemon-file-output.json
+                pokemon-file-output.csv
             /images
             /js
 
