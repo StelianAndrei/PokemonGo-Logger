@@ -21,7 +21,7 @@ var PokemonLoggerMapView = {
         var self = this;
 
         // start loading the configuration file and the data file
-        self.loadJSON('/data/confi1g.json', function(data) {
+        self.loadJSON('/data/config.json', function(data) {
             // import the config once the file has been fetched
             self.config = $.extend(self.config, data);
             // if the key API was not set
@@ -33,7 +33,7 @@ var PokemonLoggerMapView = {
             // load the script for the Google Maps API
             $.getScript('https://maps.googleapis.com/maps/api/js?key=' + self.config.gmapkey + '&libraries=drawing', function() {
                 // load the Pokemon data file
-                self.loadJSON('/data/'.self.config.datafile, function(data) {
+                self.loadJSON('/data/' + self.config.datafile, function(data) {
                     // store the pokemon
                     self.pokemonArray = data;
 
