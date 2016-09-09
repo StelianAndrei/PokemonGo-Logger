@@ -1,3 +1,5 @@
+/* globals $, google, console */
+"use strict";
 /**
  * This is out main object. All the functionality is contained whithin
  * @type {Object}
@@ -13,6 +15,8 @@ var PokemonLoggerMapView = {
     pokemonArray: [], // the pokemon data, loaded from file
     map: null, // the map
     markers: [], // the markers array
+    sort_by: 'name', // the default sorting 
+    sort_direction: 'asc', // the default sorting direction
 
     /**
      * Initialize everything. This is the main entry point
@@ -67,7 +71,8 @@ var PokemonLoggerMapView = {
         });
 
         self.placeMarkers();
-        self.createUI()
+        self.refreshPokemonFilters();
+        self.registerCheckboxEvents();
     },
 
     /**
@@ -102,32 +107,96 @@ var PokemonLoggerMapView = {
     /**
      * Create the interface
      */
-    createUI: function() {
+    refreshPokemonFilters: function() {
         var self = this,
-            controlsContainer = $('ul#pokemon-list'),
-            singles = [],
-            data,
-            html;
+            singles = { ids: [], names: [] };
 
-        // create the list items
+        // sort the pokemon array based on the sorting criteria
+        self.sortPokemonArray();
+
+        // get the single/individual items
         for (var i = 0; i < self.pokemonArray.length; i++) {
-            data = self.pokemonArray[i];
-            // if we have't created an item for this type of pokemon
-            if (singles.indexOf(data.pokemon_id) === -1) {
-                // create the list item
-                html = '<li>';
-                html += '<input type="checkbox" value="' + data.pokemon_id + '" id="pokemon_checkbox_' + data.pokemon_id + '">';
-                html += '<label for="pokemon_checkbox_' + data.pokemon_id + '">' + data.name + '</label>';
-                html += '</li>';
-
-                // add the html
-                controlsContainer.append(html);
+            // if we have't stored this type of pokemon
+            if (singles.ids.indexOf(self.pokemonArray[i].pokemon_id) === -1) {
                 // store it in the singles array
-                singles.push(data.pokemon_id);
+                singles.ids.push(self.pokemonArray[i].pokemon_id);
+                singles.names.push(self.pokemonArray[i].name);
             }
         }
 
-        self.registerCheckboxEvents();
+        // create the HTML
+        self.createPokemonListHTML(singles);
+    },
+
+    /**
+     * Determine the sorting type and apply it accordingly
+     */
+    sortPokemonArray: function() {
+        var self = this;
+
+        switch (self.sort_by) {
+            case 'name':
+                self.sortPokemonArrayByName();
+                break;
+            case 'id':
+                /* falls through */
+            default:
+                self.sortPokemonArrayByID();
+        }
+    },
+
+    /**
+     * Sort the Pokemon array by name
+     */
+    sortPokemonArrayByName: function() {
+        var self = this,
+            direction = self.sort_direction === 'asc' ? 1 : -1;
+
+        // sort pokemonArray by name
+        self.pokemonArray.sort(function(a, b) {
+            return (a.name > b.name) ? direction : ((b.name > a.name) ? -direction : 0);
+        });
+    },
+
+    /**
+     * Sort the Pokemon array by ID
+     */
+    sortPokemonArrayByID: function() {
+        var self = this,
+            direction = self.sort_direction === 'asc' ? 1 : -1;
+
+        // sort pokemonArray by ID
+        self.pokemonArray.sort(function(a, b) {
+            return (parseInt(a.pokemon_id) > parseInt(b.pokemon_id)) ? direction : ((parseInt(b.pokemon_id) > parseInt(a.pokemon_id)) ? -direction : 0);
+        });
+    },
+
+    /**
+     * Create the HTML for the filters
+     * @param  {Object} items An object that contains 2 arrays: ids[] and names[]
+     */
+    createPokemonListHTML: function(items) {
+        var controlsContainer = $('ul#pokemon-list'),
+            i, id, name, html;
+
+        // empty the container
+        controlsContainer.html('');
+
+        // add all the list items
+        for (i = 0; i < items.ids.length; i++) {
+            // get the ID and the name
+            id = items.ids[i];
+            name = items.names[i];
+
+            // create the list item
+            html = '<li>';
+            html += '<input type="checkbox" value="' + id + '" id="pokemon_checkbox_' + id + '">';
+            html += '<label for="pokemon_checkbox_' + id + '">' + name + ' (#' + id + ')</label>';
+            html += '</li>';
+
+            // add the html
+            controlsContainer.append(html);
+        }
     },
 
     /**
@@ -137,7 +206,7 @@ var PokemonLoggerMapView = {
         var self = this;
 
         // for the change of a checkbox
-        $('ul#pokemon-list input[type="checkbox"]').change(function(evt) {
+        $('ul#pokemon-list').on('change', 'input[type="checkbox"]', function() {
             var id = $(this).val(),
                 isChecked = $(this).is(':checked');
             // go through all the markers
@@ -147,7 +216,7 @@ var PokemonLoggerMapView = {
                     self.markers[i].setVisible(isChecked);
                 }
             }
-        })
+        });
     },
 
     /**
@@ -191,7 +260,7 @@ var PokemonLoggerMapView = {
                     'iv_display': item[5],
                     'cp': item[6],
                     'name': item[7],
-                })
+                });
             }
             success(objects);
         }, error);
@@ -241,7 +310,7 @@ var PokemonLoggerMapView = {
             console.error('%cERROR: ' + data.statusText + ' (' + data.responseURL + ')', errorFormat);
         }
         // show an error to let the user know something went wrong
-        alert('There was an error. Check the console for more details.')
+        window.alert('There was an error. Check the console for more details.');
     }
 };
 
