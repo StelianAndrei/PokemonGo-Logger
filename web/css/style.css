@@ -12,26 +12,74 @@ body {
 
 #stats-holder {
     background: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, .3);
     position: absolute;
     top: 20px;
     right: 20px;
-    padding: 10px;
-    min-width: 200px;
+    min-width: 250px;
+    user-select: none;
 }
 
-#stats-holder h2 {
+#stats-header {
+    display: block;
     font-size: 18px;
-    padding: 0 0 10px;
-    margin: 0 -10px;
+    line-height: 36px;
+    font-weight: normal;
+    font-variant: small-caps;
     text-align: center;
     border-bottom: 1px solid #ccc;
+    cursor: pointer;
 }
+#toggle-pokemon-list{ display: none }
 
 #pokemon-list {
     list-style: none;
-    margin: 15px 0;
+    margin: 0;
     padding: 0;
+    overflow: hidden;
+}
+#toggle-pokemon-list:checked + #pokemon-list{ height: 0; }
+#pokemon-list input[type="checkbox"]{
+    display: none;
 }
 #pokemon-list label{
     cursor: pointer;
+    font-variant: small-caps;
+    display: block;
+    line-height: 1.5;
+    position: relative;
+    border-bottom: 1px solid #ccc;
+    padding: 0 15px;
+    transition: .3s all linear;
+}
+#pokemon-list li:last-child label{
+    margin-bottom: 20px;
+    border-bottom: none;
+}
+#pokemon-list label:before{
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border: 1px solid #ccc;
+    margin-right: 10px;
+    position: relative;
+    z-index: 10;
+    background-color: #fff;
+}
+#pokemon-list input[type="checkbox"]:checked + label{
+    background-color: #82d399;
+    border-bottom-color: #77bb8a;
+}
+#pokemon-list input[type="checkbox"]:checked + label:after{
+    content: "\2713";
+    display: block;
+    position: absolute;
+    z-index: 15;
+    left: 15px;
+    top: -7px;
+    color: green;
+    font-weight: bold;
+    font-size: 22px;
 }

@@ -106,15 +106,22 @@ var PokemonLoggerMapView = {
         var self = this,
             controlsContainer = $('ul#pokemon-list'),
             singles = [],
-            data;
+            data,
+            html;
 
         // create the list items
         for (var i = 0; i < self.pokemonArray.length; i++) {
             data = self.pokemonArray[i];
             // if we have't created an item for this type of pokemon
             if (singles.indexOf(data.pokemon_id) === -1) {
+                // create the list item
+                html = '<li>';
+                html += '<input type="checkbox" value="' + data.pokemon_id + '" id="pokemon_checkbox_' + data.pokemon_id + '">';
+                html += '<label for="pokemon_checkbox_' + data.pokemon_id + '">' + data.name + '</label>';
+                html += '</li>';
+
                 // add the html
-                controlsContainer.append('<li><label><input type="checkbox" value="' + data.pokemon_id + '"> ' + data.name + '</li>');
+                controlsContainer.append(html);
                 // store it in the singles array
                 singles.push(data.pokemon_id);
             }
