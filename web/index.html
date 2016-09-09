@@ -9,10 +9,16 @@
   <body>
     <div id="map"></div>
 
+    <input type="checkbox" id="toggle-pokemon-list">
     <div id="stats-holder">
-      <label id="stats-header" for="toggle-pokemon-list">Stats</label>
-      <input type="checkbox" id="toggle-pokemon-list">
-      <ul id="pokemon-list"></ul>
+      <label id="stats-header" for="toggle-pokemon-list" title="Click to toggle the Pokemon list">Stats</label>
+      <div class="scrollable-content">
+        <ul id="pokemon-sorter">
+          <li><a href="#" class="active asc" data-by="name" title="Click to sort by Pokemon name">By Name</a></li
+          ><li><a href="#" data-by="id" title="Click to sort by Pokemon ID">By ID</a></li>
+        </ul>
+        <ul id="pokemon-list"></ul>
+      </div>
     </div>
 
     <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>

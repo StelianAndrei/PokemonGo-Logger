@@ -72,6 +72,7 @@ var PokemonLoggerMapView = {
 
         self.placeMarkers();
         self.refreshPokemonFilters();
+        self.registerSortingEvents();
         self.registerCheckboxEvents();
     },
 
@@ -91,7 +92,7 @@ var PokemonLoggerMapView = {
                     lat: parseFloat(data.latitude),
                     lng: parseFloat(data.longitude)
                 },
-                title: data.pokemon + ' [CP: ' + data.cp + '] [IV: ' + data.iv_display + ']',
+                title: data.name + ' [CP: ' + data.cp + '] [IV: ' + data.iv + '] [Stats: ' + data.iv_display + ']\nSeen: ' + data.date,
                 icon: {
                     url: 'images/marker.png'
                 },
@@ -197,6 +198,34 @@ var PokemonLoggerMapView = {
             // add the html
             controlsContainer.append(html);
         }
+    },
+
+    /**
+     * Register the click events on the pokemon sorting buttons
+     */
+    registerSortingEvents: function() {
+        var self = this,
+            sortBy;
+
+        $('#pokemon-sorter').on('click', 'a', function(evt) {
+            evt.preventDefault();
+            sortBy = $(this).data('by');
+
+            // set the sorting direction
+            if (sortBy === self.sort_by) {
+                self.sort_direction = (self.sort_direction === 'asc') ? 'desc' : 'asc';
+            } else {
+                self.sort_direction = 'asc';
+            }
+
+            // set the sorting criteria
+            self.sort_by = sortBy;
+
+            // update the interface
+            $('#pokemon-sorter a').removeClass('active desc asc');
+            $(this).addClass('active ' + self.sort_direction);
+            self.refreshPokemonFilters();
+        });
     },
 
     /**

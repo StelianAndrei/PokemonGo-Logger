@@ -14,11 +14,12 @@ body {
     background: #fff;
     border: 1px solid #ccc;
     box-shadow: 0 0 10px rgba(0, 0, 0, .3);
-    position: absolute;
-    top: 20px;
+    position: fixed;
+    top: 2.5%;
     right: 20px;
-    min-width: 250px;
-    user-select: none;
+    min-width: 300px;
+    max-height: 95%;
+    height: 100%;
 }
 
 #stats-header {
@@ -32,14 +33,53 @@ body {
     cursor: pointer;
 }
 #toggle-pokemon-list{ display: none }
+#stats-holder .scrollable-content{
+    position: relative;
+    overflow-y: auto;
+    max-height: calc(100% - 37px);
+}
+
+#toggle-pokemon-list:checked + #stats-holder{ height: auto; }
+#toggle-pokemon-list:checked + #stats-holder .scrollable-content{ height: 0; overflow: hidden;}
+
+#pokemon-sorter{ margin: 0; padding: 0; list-style-type: none; border-bottom: 1px solid #ccc;}
+#pokemon-sorter li{ display: inline-block;
+    height: 50px;
+    line-height: 50px;
+    width: calc(50% - 1px);
+    text-align: center;
+    padding: 0;
+}
+#pokemon-sorter li + li{
+    border-left: 1px solid #ccc;
+}
+#pokemon-sorter a{
+    display: block;
+    height: 100%;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    background-color: #eee;
+    transition: .2s all linear;
+}
+#pokemon-sorter a.active{
+    background-color: #82d399;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, .3);
+    color: white;
+    font-weight: bold;
+}
+#pokemon-sorter a.active.asc:after{
+    content: '\ \21E7';
+}
+#pokemon-sorter a.active.desc:after{
+    content: '\ \21E9';
+}
 
 #pokemon-list {
     list-style: none;
     margin: 0;
     padding: 0;
-    overflow: hidden;
 }
-#toggle-pokemon-list:checked + #pokemon-list{ height: 0; }
 #pokemon-list input[type="checkbox"]{
     display: none;
 }
